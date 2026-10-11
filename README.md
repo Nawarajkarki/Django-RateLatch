@@ -83,3 +83,28 @@ def another_view(request):
 Supported units include seconds (`s`, `sec`), minutes (`m`, `min`), and hours (`h`, `hr`); a multiplier is also supported, such as `30/5m`. The decorator still uses the algorithm, backend, and key function from `RATE_LIMITER`.
 
 Use either the project-wide middleware or the decorator for a given request path. If both run for the same request, both apply a rate-limit check.
+
+## Use with Django REST framework
+
+For a local editable install, add DRF to your consumer project:
+
+```bash
+uv add djangorestframework
+```
+
+Register the throttle in your Django `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    # ...
+    "rest_framework",
+]
+
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_CLASSES": [
+        "django_ratelimiter.integrations.drf.RateLimitThrottle",
+    ],
+}
+```
+
+The throttle uses the `RATE_LIMITER` configuration and `KEY_FUNCTION` described above. Throttled requests receive HTTP `429` and a `Retry-After` header.
