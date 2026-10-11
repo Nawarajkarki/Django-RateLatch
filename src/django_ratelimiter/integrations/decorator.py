@@ -10,7 +10,8 @@ from django.utils.module_loading import import_string
 
 from django_ratelimiter.core.limiter import build_limiter
 from django_ratelimiter.backends.factory import build_backend
-
+from django.core.exceptions import ImproperlyConfigured
+from django_ratelimiter.exceptions import RateLimiterBackendError
 
 """
 Allow devs to config per view limiter decorators as 
@@ -71,6 +72,10 @@ def rate_limit(rate_string = None):
             
     config = settings.RATE_LIMITER.copy()
 
+    fail_open = config.get("FAIL_OPEN", False)
+    if not isinstance(fail_open, bool):
+        raise ImproperlyConfigured("RATE_LIMITER['FAIL_OPEN'] must be a boolean.")
+
     if rate_string is not None:
         limit, window_seconds = parse_rate_string(rate_string)
         
@@ -86,9 +91,17 @@ def rate_limit(rate_string = None):
     async_limiter_check = sync_to_async(limiter.check, thread_sensitive=False)
     
     
+    
+    def backend_failure_response():
+        return HttpResponse(
+            "Rate limiter temporarily unavailable",
+            status=503,
+        )
+                
+                
     def decorator(view_func):
         view_scope = f"{view_func.__module__}.{view_func.__qualname__}"
-
+                
         def make_rejection_response(decision):
             response = HttpResponse("Too many requests", status=429)
             response["Retry-After"] = str(decision["retry_after"])
@@ -100,7 +113,13 @@ def rate_limit(rate_string = None):
             async def _wrapped_async_view(request, *args, **kwargs):
                 client_key = await async_key_function(request)
                 scoped_key = f"{view_scope}:{client_key}"
-                decision = await async_limiter_check(key=scoped_key)
+                
+                try:
+                    decision = await async_limiter_check(key=scoped_key)
+                except RateLimiterBackendError:
+                    if fail_open:
+                        return await view_func(request, *args, **kwargs)
+                    return backend_failure_response()
 
                 if not decision["allowed"]:
                     return make_rejection_response(decision)
@@ -113,12 +132,19 @@ def rate_limit(rate_string = None):
         def _wrapped_sync_view(request, *args, **kwargs):
             client_key = key_function(request)
             scoped_key = f"{view_scope}:{client_key}"
-            decision = limiter.check(key=scoped_key)
 
+            try:
+                decision = limiter.check(key=scoped_key)
+            except RateLimiterBackendError:
+                if fail_open:
+                    return view_func(request, *args, **kwargs)
+                return backend_failure_response()
+            
             if not decision["allowed"]:
                 return make_rejection_response(decision)
 
             return view_func(request, *args, **kwargs)
+        
 
         return _wrapped_sync_view
     return decorator

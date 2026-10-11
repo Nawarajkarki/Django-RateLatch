@@ -8,6 +8,8 @@ from asgiref.sync import async_to_sync
 from django_ratelimiter.integrations.decorator import parse_rate_string, rate_limit
 from django_ratelimiter.backends.memory import MemoryBackend
 
+from django_ratelimiter.exceptions import RateLimiterBackendError
+
 
 def dummy_key_func(request):
     return request.META.get('REMOTE_ADDR', '127.0.0.1')
@@ -187,3 +189,87 @@ def test_decorator_supports_async_view(rf):
     assert response2.status_code == 429
     assert response2["Retry-After"]
     assert calls == ["called"]  
+    
+
+@pytest.mark.parametrize(
+    ("fail_open", "expected_status", "expected_view_calls"),
+    [
+        (False, 503, 0),
+        (True, 200, 1),
+    ],
+)
+def test_sync_decorator_backend_failure_policy(
+    settings,
+    monkeypatch,
+    rf,
+    fail_open,
+    expected_status,
+    expected_view_calls,
+):
+    settings.RATE_LIMITER = {
+        **settings.RATE_LIMITER,
+        "FAIL_OPEN": fail_open,
+    }
+
+    class FailingLimiter:
+        def check(self, key):
+            raise RateLimiterBackendError("test backend failure")
+
+    monkeypatch.setattr(
+        "django_ratelimiter.integrations.decorator.build_limiter",
+        lambda **kwargs: FailingLimiter(),
+    )
+
+    view_calls = []
+
+    @rate_limit()
+    def sample_view(request):
+        view_calls.append(request)
+        return HttpResponse("ok")
+
+    response = sample_view(rf.get("/test/"))
+
+    assert response.status_code == expected_status
+    assert len(view_calls) == expected_view_calls
+
+
+@pytest.mark.parametrize(
+    ("fail_open", "expected_status", "expected_view_calls"),
+    [
+        (False, 503, 0),
+        (True, 200, 1),
+    ],
+)
+def test_async_decorator_backend_failure_policy(
+    settings,
+    monkeypatch,
+    rf,
+    fail_open,
+    expected_status,
+    expected_view_calls,
+):
+    settings.RATE_LIMITER = {
+        **settings.RATE_LIMITER,
+        "FAIL_OPEN": fail_open,
+    }
+
+    class FailingLimiter:
+        def check(self, key):
+            raise RateLimiterBackendError("test backend failure")
+
+    monkeypatch.setattr(
+        "django_ratelimiter.integrations.decorator.build_limiter",
+        lambda **kwargs: FailingLimiter(),
+    )
+
+    view_calls = []
+
+    @rate_limit()
+    async def sample_view(request):
+        view_calls.append(request)
+        return HttpResponse("ok")
+
+    response = async_to_sync(sample_view)(rf.get("/test/"))
+
+    assert response.status_code == expected_status
+    assert len(view_calls) == expected_view_calls

@@ -1,13 +1,25 @@
 
 import uuid
-
 import pytest
+
 from redis import Redis
 from concurrent.futures import ThreadPoolExecutor
+from unittest.mock import MagicMock
+from redis.exceptions import ResponseError, TimeoutError as RedisTimeoutError, WatchError
 
-from django_ratelimiter.backends.redis import RedisBackend
+from django_ratelimiter.backends.redis import RedisBackend, MAX_UPDATE_ATTEMPTS
 from django_ratelimiter.core.algorithms.fixed_window import FixedWindow
 from django_ratelimiter.core.algorithms.sliding_window_counter import SlidingWindowCounter
+from django_ratelimiter.exceptions import RateLimiterBackendError
+
+from redis.exceptions import (
+    ConnectionError as RedisConnectionError,
+    ResponseError,
+    TimeoutError as RedisTimeoutError,
+    WatchError,
+)
+
+
 
 
 @pytest.fixture
@@ -155,3 +167,135 @@ def test_sliding_window_counter_uses_redis_backend(
         "previous_count": 5,
         "current_count": 2,
     }
+    
+@pytest.mark.parametrize(
+    "error",
+    [
+        ResponseError("OOM command not allowed"),
+        RedisTimeoutError("Redis timed out"),
+    ],
+)
+def test_get_wraps_redis_errors(error):
+    client = MagicMock()
+    client.get.side_effect = error
+    backend = RedisBackend(client)
+
+    with pytest.raises(RateLimiterBackendError):
+        backend.get("client-1")
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        ResponseError("OOM command not allowed"),
+        RedisTimeoutError("Redis timed out"),
+    ],
+)
+def test_set_wraps_redis_errors(error):
+    client = MagicMock()
+    client.set.side_effect = error
+    backend = RedisBackend(client)
+
+    with pytest.raises(RateLimiterBackendError):
+        backend.set("client-1", {"request_count": 1})
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        ResponseError("OOM command not allowed"),
+        RedisTimeoutError("Redis timed out"),
+        RedisConnectionError("Redis is unavailable"),
+    ],
+)
+def test_update_wraps_redis_errors(error):
+    client = MagicMock()
+    pipe = client.pipeline.return_value.__enter__.return_value
+    pipe.get.return_value = None
+    pipe.execute.side_effect = error
+    backend = RedisBackend(client)
+
+    def updater(state):
+        return {"request_count": 1}, {"allowed": True}, 60
+
+    with pytest.raises(RateLimiterBackendError):
+        backend.update("client-1", updater)
+        
+        
+        
+def test_update_retries_watch_error():
+    client = MagicMock()
+    pipe = client.pipeline.return_value.__enter__.return_value
+    pipe.watch.side_effect = [WatchError(), None]
+    pipe.get.return_value = None
+    backend = RedisBackend(client)
+
+    def updater(state):
+        return {"request_count": 1}, {"allowed": True}, 60
+
+    result = backend.update("client-1", updater)
+
+    assert result == {"allowed": True}
+    assert pipe.watch.call_count == 2
+    assert pipe.execute.call_count == 1
+
+
+
+def test_concurrent_requests_from_independent_redis_clients(
+    redis_backend,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "django_ratelimiter.core.algorithms.fixed_window.time",
+        lambda: 1000,
+    )
+
+    second_client = Redis(
+        host="localhost",
+        port=6379,
+        db=15,
+        protocol=2,
+        decode_responses=True,
+    )
+    second_client.ping()
+
+    second_backend = RedisBackend(
+        second_client,
+        key_prefix=redis_backend.key_prefix,
+    )
+
+    limit = 10
+    limiters = [
+        FixedWindow(limit=limit, window_size=60, backend=redis_backend),
+        FixedWindow(limit=limit, window_size=60, backend=second_backend),
+    ]
+
+    try:
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            decisions = list(
+                executor.map(
+                    lambda i: limiters[i % 2].check("client-1"),
+                    range(100),
+                )
+            )
+    finally:
+        second_client.close()
+
+    assert sum(decision["allowed"] for decision in decisions) == limit
+
+    state = redis_backend.get("client-1")
+    assert state["request_count"] == limit
+
+def test_update_stops_after_too_many_watch_errors():
+    client = MagicMock()
+    pipe = client.pipeline.return_value.__enter__.return_value
+    pipe.watch.side_effect = WatchError()
+    backend = RedisBackend(client)
+
+    def updater(state):
+        return {"request_count": 1}, {"allowed": True}, 60
+
+    with pytest.raises(RateLimiterBackendError, match="conflicted too many times"):
+        backend.update("client-1", updater)
+
+    assert pipe.watch.call_count == MAX_UPDATE_ATTEMPTS
