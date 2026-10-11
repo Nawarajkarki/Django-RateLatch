@@ -1,10 +1,18 @@
 SECRET_KEY = "test-only"
-INSTALLED_APPS = []
+INSTALLED_APPS = [
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
     }
+}
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_CLASSES": [
+        "django_ratelimiter.integrations.drf.RateLimitThrottle",
+    ],
 }
 
 RATE_LIMITER = {
