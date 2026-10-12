@@ -1,14 +1,14 @@
 [project]
 name = "django-ratelimiter"
 version = "0.1.0"
-description = "Django rate limiting middleware and decorators with fixed-window and sliding-window counter algorithms, backed by in-memory storage or Redis."
+description = "Django rate limiting middleware and decorators with fixed-window, sliding-window counter and token-bucket algorithms, backed by in-memory storage or Redis."
 readme = "README.md"
 authors = [
     { name = "Nawaraj karki", email = "nawarajkarkee404@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "django>=6.1.2",
+    "django>=5.2",
 ]
 [project.optional-dependencies]
 redis = ["redis>=8.1.0"]
