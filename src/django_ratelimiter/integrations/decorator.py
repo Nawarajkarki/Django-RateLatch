@@ -18,12 +18,6 @@ Allow devs to config per view limiter decorators as
 rate_limit(10/min) OR rate_limit(10/sec)
 """
 
-multiplier_map = {
-    's': 1, 'sec' : 1, "secs":1, "second":1, "seconds":1,
-    "m":60, "min":60, "mins":60, "minute":60, "minutes":60,
-    "h":3600, "hr": 3600, "hrs":3600, "hour":3600, "hours":3600
-}
-
 def parse_rate_string(rate_str):
     """
     Parses strings like '10/m', '10/30s', '5/5min', '100/2h' as 

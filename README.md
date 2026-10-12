@@ -1,6 +1,6 @@
 # Django Rate Limiter
 
-This project is under development. It currently provides Django middleware and a per-view decorator, with fixed-window and sliding-window-counter algorithms. Other planned features are not available yet.
+This project is under development. It currently provides Django middleware and a per-view decorator, with fixed-window, sliding-window-counter and token-bucket algorithms. Other planned features are not available yet.
 
 ## Install
 
@@ -30,17 +30,18 @@ Configure the limiter in your Django `settings.py`:
 import os
 
 RATE_LIMITER = {
-    "ALGORITHM": "fixed_window",  # or "sliding_window_counter"
-    "LIMIT": 10,
-    "WINDOW_SECONDS": 60,
-    "KEY_FUNCTION": "myproject.ratelimit.get_rate_limit_key",
-    "BACKEND": "redis",  # or "memory"
-    "REDIS_URL": os.environ["RATE_LIMITER_REDIS_URL"],
+    "ALGORITHM" : "fixed_window",  # or "sliding_window_counter" or "token_bucket"
+    "LIMIT" : 10,
+    "WINDOW_SECONDS" : 60,
+    "KEY_FUNCTION" : "myproject.ratelimit.get_rate_limit_key",
+    "BACKEND" : "redis",  # or "memory"
+    "REDIS_URL" : os.environ["RATE_LIMITER_REDIS_URL"],
+    "BURST_CAPACITY": 20,  # optional; token_bucket only, defaults to LIMIT
 }
 ```
 
-- `ALGORITHM`: `fixed_window` or `sliding_window_counter`.
-- `LIMIT`: allowed requests per window.
+- `ALGORITHM`: `fixed_window` or `sliding_window_counter` or `token_bucket`.
+- `LIMIT`: For fixed and sliding-window algorithms, the maximum requests allowed per window. For token bucket, the number of tokens replenished per WINDOW_SECONDS
 - `WINDOW_SECONDS`: window duration in seconds.
 - `KEY_FUNCTION`: dotted path to the function that creates a client key.
 - `BACKEND`: `memory` or `redis`. The memory backend is process-local; use Redis when requests are served by multiple processes.

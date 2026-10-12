@@ -23,6 +23,7 @@ def _build_configured_limiter(
     algorithm,
     limit,
     window_seconds,
+    burst_capacity,
     backend_name,
     redis_url,
     redis_socket_timeout,
@@ -36,6 +37,9 @@ def _build_configured_limiter(
         "BACKEND": backend_name,
     }
 
+    if burst_capacity is not None:
+        config["BURST_CAPACITY"] =  burst_capacity
+    
     if backend_name == "redis":
         config["REDIS_URL"] = redis_url
         config["REDIS_SOCKET_TIMEOUT"] = redis_socket_timeout
@@ -52,6 +56,7 @@ def _get_configured_limiter(config):
         config["ALGORITHM"],
         config["LIMIT"],
         config["WINDOW_SECONDS"],
+        config.get("BURST_CAPACITY"),
         backend_name,
         config.get("REDIS_URL"),
         config.get("REDIS_SOCKET_TIMEOUT", 1.0),
