@@ -42,12 +42,12 @@ def test_refills_continuously_and_allows_when_token_is_available(monkeypatch):
     limiter.check("client-1")
 
     set_clock(monkeypatch, 1004)
-    state_before_rejection = backend.get("client-1")
+    state_before_rejection = backend.get("token_bucket:client-1")
 
     result = limiter.check("client-1")
 
     assert result == {"allowed": False, "retry_after": 1}
-    assert backend.get("client-1") == state_before_rejection
+    assert backend.get("token_bucket:client-1") == state_before_rejection
     
     
     set_clock(monkeypatch, 1005)
@@ -72,7 +72,7 @@ def test_refill_never_exceeds_bucket_capacity(monkeypatch):
     assert limiter.check("client-1") == {"allowed": True}
 
     # It refilled to 2, then this request spent one token.
-    state = backend.get("client-1")
+    state = backend.get("token_bucket:client-1")
     assert state is not None
     assert state["tokens"] == pytest.approx(1)
     
