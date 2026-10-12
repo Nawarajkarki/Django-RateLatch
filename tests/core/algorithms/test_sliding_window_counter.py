@@ -27,7 +27,7 @@ def test_allows_requests_up_to_limit_then_rejects(monkeypatch):
     assert result["allowed"] is False
     assert result["retry_after"] > 0
 
-    assert backend.get("client-1") == {
+    assert backend.get("sliding_window_counter:client-1") == {
         "window_id": 100,
         "previous_count": 0,
         "current_count": 3,
@@ -40,7 +40,7 @@ def test_weights_previous_count_but_counts_current_fully(monkeypatch):
 
     backend = MemoryBackend()
     backend.set(
-        "client-1",
+        "sliding_window_counter:client-1",
         {
             "window_id": 101,
             "previous_count": 5,
@@ -51,7 +51,7 @@ def test_weights_previous_count_but_counts_current_fully(monkeypatch):
 
     # Estimate: 1 current + 5 * 8/10 previous = 5. Allow; current becomes 2.
     assert limiter.check("client-1") == {"allowed": True}
-    assert backend.get("client-1") == {
+    assert backend.get("sliding_window_counter:client-1") == {
         "window_id": 101,
         "previous_count": 5,
         "current_count": 2,
@@ -60,7 +60,7 @@ def test_weights_previous_count_but_counts_current_fully(monkeypatch):
     # Estimate is now 2 + 5 * 8/10 = 6. Reject without changing state.
     result = limiter.check("client-1")
     assert result["allowed"] is False
-    assert backend.get("client-1") == {
+    assert backend.get("sliding_window_counter:client-1") == {
         "window_id": 101,
         "previous_count": 5,
         "current_count": 2,
@@ -72,7 +72,7 @@ def test_rolls_current_count_into_previous_after_one_window(monkeypatch):
 
     backend = MemoryBackend()
     backend.set(
-        "client-1",
+        "sliding_window_counter:client-1",
         {
             "window_id": 100,
             "previous_count": 99,  # This older count should be discarded.
@@ -82,7 +82,7 @@ def test_rolls_current_count_into_previous_after_one_window(monkeypatch):
     limiter = SlidingWindowCounter(limit=6, window_size=10, backend=backend)
 
     assert limiter.check("client-1") == {"allowed": True}
-    assert backend.get("client-1") == {
+    assert backend.get("sliding_window_counter:client-1") == {
         "window_id": 101,
         "previous_count": 5,
         "current_count": 1,
@@ -94,7 +94,7 @@ def test_resets_counts_after_skipping_two_or_more_windows(monkeypatch):
 
     backend = MemoryBackend()
     backend.set(
-        "client-1",
+        "sliding_window_counter:client-1",
         {
             "window_id": 100,
             "previous_count": 4,
@@ -104,7 +104,7 @@ def test_resets_counts_after_skipping_two_or_more_windows(monkeypatch):
     limiter = SlidingWindowCounter(limit=6, window_size=10, backend=backend)
 
     assert limiter.check("client-1") == {"allowed": True}
-    assert backend.get("client-1") == {
+    assert backend.get("sliding_window_counter:client-1") == {
         "window_id": 102,
         "previous_count": 0,
         "current_count": 1,
@@ -137,7 +137,7 @@ def test_retry_after_for_rejected_request(
     set_clock(monkeypatch, timestamp)
 
     backend = MemoryBackend()
-    backend.set("client-1", state)
+    backend.set("sliding_window_counter:client-1", state)
     limiter = SlidingWindowCounter(limit=6, window_size=10, backend=backend)
 
     result = limiter.check("client-1")
@@ -146,7 +146,7 @@ def test_retry_after_for_rejected_request(
         "allowed": False,
         "retry_after": expected_retry_after,
     }
-    assert backend.get("client-1") == state
+    assert backend.get("sliding_window_counter:client-1") == state
 
 
 def test_different_keys_have_independent_counts(monkeypatch):
@@ -174,15 +174,15 @@ def test_state_expires_after_it_is_no_longer_needed(monkeypatch):
     limiter = SlidingWindowCounter(limit=6, window_size=10, backend=backend)
 
     assert limiter.check("client-1") == {"allowed": True}
-    assert backend.get("client-1") is not None
+    assert backend.get("sliding_window_counter:client-1") is not None
 
     # At 1012 in window 101, state expires at the end of window 102:
     # (101 + 2) * 10 = 1030, which is 18 seconds later.
     monotonic_time[0] = 117.9
-    assert backend.get("client-1") is not None
+    assert backend.get("sliding_window_counter:client-1") is not None
 
     monotonic_time[0] = 118.0
-    assert backend.get("client-1") is None
+    assert backend.get("sliding_window_counter:client-1") is None
 
 
 @pytest.mark.parametrize(

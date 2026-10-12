@@ -28,6 +28,6 @@ def test_concurrent_requests_do_not_exceed_limit(monkeypatch):
 
     assert sum(decision["allowed"] for decision in decisions) == limit
 
-    state = backend.get("client-1")
+    state = backend.get("sliding_window_counter:client-1")
     assert state is not None
     assert state["current_count"] == limit

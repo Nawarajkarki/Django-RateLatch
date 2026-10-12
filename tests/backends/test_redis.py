@@ -85,7 +85,7 @@ def test_fixed_window_uses_redis_backend(redis_backend, monkeypatch):
         "retry_after": 20,
     }
 
-    state = redis_backend.get("client-1")
+    state = redis_backend.get("fixed_window:client-1")
     assert state == {"window_id": 16, "request_count": 2}
     
     
@@ -119,7 +119,7 @@ def test_concurrent_requests_do_not_exceed_limit_with_redis(
     allowed_count = sum(decision["allowed"] for decision in decisions)
     assert allowed_count == limit
 
-    state = redis_backend.get("client-1")
+    state = redis_backend.get("fixed_window:client-1")
     assert state is not None
     assert state["request_count"] == limit
     
@@ -138,7 +138,7 @@ def test_sliding_window_counter_uses_redis_backend(
     )
 
     redis_backend.set(
-        "client-1",
+        "sliding_window_counter:client-1",
         {
             "window_id": 101,
             "previous_count": 5,
@@ -154,7 +154,7 @@ def test_sliding_window_counter_uses_redis_backend(
     )
 
     assert limiter.check("client-1") == {"allowed": True}
-    assert redis_backend.get("client-1") == {
+    assert redis_backend.get("sliding_window_counter:client-1") == {
         "window_id": 101,
         "previous_count": 5,
         "current_count": 2,
@@ -162,7 +162,7 @@ def test_sliding_window_counter_uses_redis_backend(
 
     result = limiter.check("client-1")
     assert result["allowed"] is False
-    assert redis_backend.get("client-1") == {
+    assert redis_backend.get("sliding_window_counter:client-1") == {
         "window_id": 101,
         "previous_count": 5,
         "current_count": 2,
@@ -283,7 +283,7 @@ def test_concurrent_requests_from_independent_redis_clients(
 
     assert sum(decision["allowed"] for decision in decisions) == limit
 
-    state = redis_backend.get("client-1")
+    state = redis_backend.get("fixed_window:client-1")
     assert state["request_count"] == limit
 
 def test_update_stops_after_too_many_watch_errors():

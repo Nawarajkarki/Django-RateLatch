@@ -49,7 +49,5 @@ class FixedWindow:
             return new_state, {"allowed": True}, timeout
             
             
-        return self.backend.update(key, updater)
-
-
-
+        # return self.backend.update(key, updater)
+        return self.backend.update(f"fixed_window:{key}", updater)

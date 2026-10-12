@@ -76,4 +76,4 @@ class TokenBucket:
 
             return new_state, {"allowed": True}, timeout
 
-        return self.backend.update(key, updater)
+        return self.backend.update(f"token_bucket:{key}", updater)

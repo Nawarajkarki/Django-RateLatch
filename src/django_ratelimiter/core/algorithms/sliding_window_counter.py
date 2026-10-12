@@ -80,7 +80,7 @@ class SlidingWindowCounter():
             }
             return new_state, {"allowed": True}, timeout
 
-        return self.backend.update(key, updater)
+        return self.backend.update(f"sliding_window_counter:{key}", updater)
 
     def _retry_after(
         self,

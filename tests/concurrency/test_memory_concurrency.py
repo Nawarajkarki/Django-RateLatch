@@ -25,6 +25,6 @@ def test_concurrent_requests_do_not_exceed_limit(monkeypatch):
     allowed_count = sum(decision["allowed"] for decision in decisions)
     assert allowed_count == limit
 
-    state = backend.get("client-1")
+    state = backend.get("fixed_window:client-1")
     assert state is not None
     assert state["request_count"] == limit
