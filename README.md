@@ -7,7 +7,7 @@ This project is under development. It currently provides Django middleware and a
 The package is not published yet. During development, install it into your Django project from the local repository, for example:
 
 ```bash
-uv add --editable ../django-ratelimiter
+uv add --editable ../django-ratelatch
 ```
 
 Use the path to this repository from your Django project's directory. Once the package is published, installation will use its published package name instead.
@@ -54,7 +54,7 @@ Add the middleware to your Django project's `MIDDLEWARE` setting:
 ```python
 MIDDLEWARE = [
     # ...
-    "django_ratelimiter.integrations.middleware.RateLimitMiddleware",
+    "django_ratelatch.integrations.middleware.RateLimitMiddleware",
 ]
 ```
 
@@ -65,7 +65,7 @@ It applies the configured limit to requests using the configured key function. R
 Use the decorator on individual views when you want to limit only selected endpoints:
 
 ```python
-from django_ratelimiter.integrations.decorator import rate_limit
+from django_ratelatch.integrations.decorator import rate_limit
 
 
 @rate_limit()
@@ -103,7 +103,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
-        "django_ratelimiter.integrations.drf.RateLimitThrottle",
+        "django_ratelatch.integrations.drf.RateLimitThrottle",
     ],
 }
 ```

@@ -8,10 +8,10 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.utils.module_loading import import_string
 
-from django_ratelimiter.core.limiter import build_limiter
-from django_ratelimiter.backends.factory import build_backend
+from django_ratelatch.core.limiter import build_limiter
+from django_ratelatch.backends.factory import build_backend
 from django.core.exceptions import ImproperlyConfigured
-from django_ratelimiter.exceptions import RateLimiterBackendError
+from django_ratelatch.exceptions import RateLimiterBackendError
 
 """
 Allow devs to config per view limiter decorators as 

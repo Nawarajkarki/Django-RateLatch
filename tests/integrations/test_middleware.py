@@ -7,8 +7,8 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 
 
-from django_ratelimiter.integrations.middleware import RateLimitMiddleware
-from django_ratelimiter.exceptions import RateLimiterBackendError
+from django_ratelatch.integrations.middleware import RateLimitMiddleware
+from django_ratelatch.exceptions import RateLimiterBackendError
 
 
 def configure_test_middleware(settings, monkeypatch, *, limit):
@@ -22,13 +22,13 @@ def configure_test_middleware(settings, monkeypatch, *, limit):
 
     # Keep the clock fixed so requests stay in the same window.
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 
     # Give every request from this test client the same rate-limit key.
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.middleware.import_string",
+        "django_ratelatch.integrations.middleware.import_string",
         lambda dotted_path: lambda request: "ip:127.0.0.1",
     )
 
@@ -51,11 +51,11 @@ def test_middleware_uses_redis(settings, monkeypatch):
     }
 
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.middleware.import_string",
+        "django_ratelatch.integrations.middleware.import_string",
         lambda dotted_path: lambda request: key,
     )
 
@@ -133,7 +133,7 @@ def test_middleware_backend_failure_policy(
             raise RateLimiterBackendError("test backend failure")
 
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.middleware.build_limiter",
+        "django_ratelatch.integrations.middleware.build_limiter",
         lambda **kwargs: FailingLimiter(),
     )
 

@@ -1,8 +1,8 @@
 from django.core.exceptions import ImproperlyConfigured
 
-from django_ratelimiter.core.algorithms.fixed_window import FixedWindow
-from django_ratelimiter.core.algorithms.sliding_window_counter import SlidingWindowCounter
-from django_ratelimiter.core.algorithms.token_bucket import TokenBucket
+from django_ratelatch.core.algorithms.fixed_window import FixedWindow
+from django_ratelatch.core.algorithms.sliding_window_counter import SlidingWindowCounter
+from django_ratelatch.core.algorithms.token_bucket import TokenBucket
 
 
 def build_limiter(config, backend):

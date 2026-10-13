@@ -4,7 +4,7 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 from redis import Redis
 
-from django_ratelimiter.backends import factory
+from django_ratelatch.backends import factory
 
 
 @pytest.fixture(autouse=True)

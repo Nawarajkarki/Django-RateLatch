@@ -1,7 +1,7 @@
 import pytest
 
-from django_ratelimiter.backends.memory import MemoryBackend
-from django_ratelimiter.core.algorithms.fixed_window import FixedWindow
+from django_ratelatch.backends.memory import MemoryBackend
+from django_ratelatch.core.algorithms.fixed_window import FixedWindow
 
 
 
@@ -36,7 +36,7 @@ def test_rejects_when_request_limit_exceeds(monkeypatch):
     key = "user123"
     
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda : 1000
     )
     
@@ -68,7 +68,7 @@ def test_allows_requset_after_window_reset(monkeypatch):
     )
     
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda : 1000
     )
     
@@ -81,7 +81,7 @@ def test_allows_requset_after_window_reset(monkeypatch):
     prev_window_id = memory_resp['window_id']
     
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda : 1060
     )
     
@@ -102,7 +102,7 @@ def test_multiple_keys(monkeypatch):
     )
     
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda : 1000    
     )
     
@@ -126,7 +126,7 @@ def test_multiple_keys(monkeypatch):
     
     
     monkeypatch.setattr(
-            "django_ratelimiter.core.algorithms.fixed_window.time",
+            "django_ratelatch.core.algorithms.fixed_window.time",
             lambda : 1060    
         )
     
@@ -151,7 +151,7 @@ def test_multiple_keys(monkeypatch):
     
 def test_rejected_response_includes_retry_after(monkeypatch):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 
@@ -166,7 +166,7 @@ def test_rejected_response_includes_retry_after(monkeypatch):
 
 def test_retry_after_rounds_up_to_whole_seconds(monkeypatch):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1005.2,
     )
 
@@ -190,11 +190,11 @@ def test_state_expires_when_fixed_window_ends(monkeypatch):
     monotonic_clock = [50.0]
 
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: wall_clock[0],
     )
     monkeypatch.setattr(
-        "django_ratelimiter.backends.memory.monotonic",
+        "django_ratelatch.backends.memory.monotonic",
         lambda: monotonic_clock[0],
     )
 

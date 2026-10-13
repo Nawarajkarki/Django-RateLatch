@@ -5,10 +5,10 @@ from django.conf import settings
 from asgiref.sync import async_to_sync
 
 
-from django_ratelimiter.integrations.decorator import parse_rate_string, rate_limit
-from django_ratelimiter.backends.memory import MemoryBackend
+from django_ratelatch.integrations.decorator import parse_rate_string, rate_limit
+from django_ratelatch.backends.memory import MemoryBackend
 
-from django_ratelimiter.exceptions import RateLimiterBackendError
+from django_ratelatch.exceptions import RateLimiterBackendError
 
 
 def dummy_key_func(request):
@@ -120,7 +120,7 @@ def test_per_view_override_does_not_change_settings(settings):
 def test_each_view_has_its_own_limit(monkeypatch, rf):
     shared_backend = MemoryBackend()
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.decorator.build_backend",
+        "django_ratelatch.integrations.decorator.build_backend",
         lambda config: shared_backend,
     )
 
@@ -148,7 +148,7 @@ def test_decorator_uses_sliding_window_counter(settings, monkeypatch, rf):
     }
 
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.sliding_window_counter.time",
+        "django_ratelatch.core.algorithms.sliding_window_counter.time",
         lambda: 1000,
     )
 
@@ -216,7 +216,7 @@ def test_sync_decorator_backend_failure_policy(
             raise RateLimiterBackendError("test backend failure")
 
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.decorator.build_limiter",
+        "django_ratelatch.integrations.decorator.build_limiter",
         lambda **kwargs: FailingLimiter(),
     )
 
@@ -258,7 +258,7 @@ def test_async_decorator_backend_failure_policy(
             raise RateLimiterBackendError("test backend failure")
 
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.decorator.build_limiter",
+        "django_ratelatch.integrations.decorator.build_limiter",
         lambda **kwargs: FailingLimiter(),
     )
 

@@ -7,9 +7,9 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.throttling import BaseThrottle
 
-from django_ratelimiter.backends.factory import build_backend
-from django_ratelimiter.core.limiter import build_limiter
-from django_ratelimiter.exceptions import RateLimiterBackendError
+from django_ratelatch.backends.factory import build_backend
+from django_ratelatch.core.limiter import build_limiter
+from django_ratelatch.exceptions import RateLimiterBackendError
 
 
 class RateLimiterUnavailable(APIException):

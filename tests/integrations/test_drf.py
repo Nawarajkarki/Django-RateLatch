@@ -6,11 +6,11 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 
-from django_ratelimiter.exceptions import RateLimiterBackendError
-from django_ratelimiter.integrations import drf
-from django_ratelimiter.integrations.drf import RateLimitThrottle
+from django_ratelatch.exceptions import RateLimiterBackendError
+from django_ratelatch.integrations import drf
+from django_ratelatch.integrations.drf import RateLimitThrottle
 
-from django_ratelimiter.integrations.drf import RateLimitThrottle
+from django_ratelatch.integrations.drf import RateLimitThrottle
 
 
 def key_from_client_header(request):
@@ -38,13 +38,13 @@ def configure_drf(settings, monkeypatch, *, limit=1, fail_open=False):
 
     # Give each request the same client key in these tests.
     monkeypatch.setattr(
-        "django_ratelimiter.integrations.drf.import_string",
+        "django_ratelatch.integrations.drf.import_string",
         lambda dotted_path: lambda request: "ip:127.0.0.1",
     )
 
     # Keep all requests in the same fixed window.
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 
@@ -191,7 +191,7 @@ def test_configured_key_function_receives_drf_request(settings, monkeypatch):
     }
 
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 

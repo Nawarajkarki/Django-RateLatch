@@ -1,4 +1,4 @@
-from django_ratelimiter.backends.memory import MemoryBackend
+from django_ratelatch.backends.memory import MemoryBackend
 
 
 
@@ -60,7 +60,7 @@ def test_get_returns_none_after_timeout(monkeypatch):
     current_time = [100.0]
 
     monkeypatch.setattr(
-        "django_ratelimiter.backends.memory.monotonic",
+        "django_ratelatch.backends.memory.monotonic",
         lambda: current_time[0],
     )
 

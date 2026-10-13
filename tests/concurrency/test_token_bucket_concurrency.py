@@ -1,12 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
 
-from django_ratelimiter.backends.memory import MemoryBackend
-from django_ratelimiter.core.algorithms.token_bucket import TokenBucket
+from django_ratelatch.backends.memory import MemoryBackend
+from django_ratelatch.core.algorithms.token_bucket import TokenBucket
 
 
 def test_concurrent_requests_do_not_exceed_burst_capacity(monkeypatch):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.token_bucket.time",
+        "django_ratelatch.core.algorithms.token_bucket.time",
         lambda: 1000,
     )
 

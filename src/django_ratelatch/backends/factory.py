@@ -2,7 +2,7 @@ import math
 from functools import lru_cache
 
 from django.core.exceptions import ImproperlyConfigured
-from django_ratelimiter.backends.memory import MemoryBackend
+from django_ratelatch.backends.memory import MemoryBackend
 
 
 def _get_timeout(config, setting_name):
@@ -29,11 +29,11 @@ def _redis_backend_for_url(
 ):
     try:
         from redis import Redis
-        from django_ratelimiter.backends.redis import RedisBackend
+        from django_ratelatch.backends.redis import RedisBackend
     except ImportError as exc:
         raise ImproperlyConfigured(
             "The Redis backend requires the 'redis' extra. "
-            "Install django-ratelimiter with Redis support."
+            "Install django-ratelatch with Redis support."
         ) from exc
 
     client = Redis.from_url(
