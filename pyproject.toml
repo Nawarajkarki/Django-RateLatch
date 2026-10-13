@@ -1,5 +1,5 @@
 [project]
-name = "django-ratelimiter"
+name = "django-ratelatch"
 version = "0.1.0"
 description = "Django rate limiting middleware and decorators with fixed-window, sliding-window counter and token-bucket algorithms, backed by in-memory storage or Redis."
 readme = "README.md"

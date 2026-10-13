@@ -1,12 +1,12 @@
 import pytest
 
-from django_ratelimiter.backends.memory import MemoryBackend
-from django_ratelimiter.core.algorithms.sliding_window_counter import (
+from django_ratelatch.backends.memory import MemoryBackend
+from django_ratelatch.core.algorithms.sliding_window_counter import (
     SlidingWindowCounter,
 )
 
 
-CLOCK_PATH = "django_ratelimiter.core.algorithms.sliding_window_counter.time"
+CLOCK_PATH = "django_ratelatch.core.algorithms.sliding_window_counter.time"
 
 
 def set_clock(monkeypatch, timestamp):
@@ -166,7 +166,7 @@ def test_state_expires_after_it_is_no_longer_needed(monkeypatch):
 
     monotonic_time = [100.0]
     monkeypatch.setattr(
-        "django_ratelimiter.backends.memory.monotonic",
+        "django_ratelatch.backends.memory.monotonic",
         lambda: monotonic_time[0],
     )
 

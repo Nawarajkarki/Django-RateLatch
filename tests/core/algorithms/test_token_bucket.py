@@ -1,10 +1,10 @@
 import pytest
 
-from django_ratelimiter.backends.memory import MemoryBackend
-from django_ratelimiter.core.algorithms.token_bucket import TokenBucket
+from django_ratelatch.backends.memory import MemoryBackend
+from django_ratelatch.core.algorithms.token_bucket import TokenBucket
 
 
-CLOCK_PATH = "django_ratelimiter.core.algorithms.token_bucket.time"
+CLOCK_PATH = "django_ratelatch.core.algorithms.token_bucket.time"
 
 
 def set_clock(monkeypatch, timestamp):

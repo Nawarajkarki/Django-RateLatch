@@ -11,7 +11,7 @@ DATABASES = {
 }
 REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
-        "django_ratelimiter.integrations.drf.RateLimitThrottle",
+        "django_ratelatch.integrations.drf.RateLimitThrottle",
     ],
 }
 

@@ -1,12 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
 
-from django_ratelimiter.backends.memory import MemoryBackend
-from django_ratelimiter.core.algorithms.fixed_window import FixedWindow
+from django_ratelatch.backends.memory import MemoryBackend
+from django_ratelatch.core.algorithms.fixed_window import FixedWindow
 
 
 def test_concurrent_requests_do_not_exceed_limit(monkeypatch):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 

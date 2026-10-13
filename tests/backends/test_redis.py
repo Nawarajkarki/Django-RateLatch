@@ -7,10 +7,10 @@ from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import MagicMock
 from redis.exceptions import ResponseError, TimeoutError as RedisTimeoutError, WatchError
 
-from django_ratelimiter.backends.redis import RedisBackend, MAX_UPDATE_ATTEMPTS
-from django_ratelimiter.core.algorithms.fixed_window import FixedWindow
-from django_ratelimiter.core.algorithms.sliding_window_counter import SlidingWindowCounter
-from django_ratelimiter.exceptions import RateLimiterBackendError
+from django_ratelatch.backends.redis import RedisBackend, MAX_UPDATE_ATTEMPTS
+from django_ratelatch.core.algorithms.fixed_window import FixedWindow
+from django_ratelatch.core.algorithms.sliding_window_counter import SlidingWindowCounter
+from django_ratelatch.exceptions import RateLimiterBackendError
 
 from redis.exceptions import (
     ConnectionError as RedisConnectionError,
@@ -68,7 +68,7 @@ def test_set_applies_timeout(redis_backend):
 
 def test_fixed_window_uses_redis_backend(redis_backend, monkeypatch):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 
@@ -97,7 +97,7 @@ def test_concurrent_requests_do_not_exceed_limit_with_redis(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 
@@ -133,7 +133,7 @@ def test_sliding_window_counter_uses_redis_backend(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.sliding_window_counter.time",
+        "django_ratelatch.core.algorithms.sliding_window_counter.time",
         lambda: 1012,
     )
 
@@ -246,7 +246,7 @@ def test_concurrent_requests_from_independent_redis_clients(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "django_ratelimiter.core.algorithms.fixed_window.time",
+        "django_ratelatch.core.algorithms.fixed_window.time",
         lambda: 1000,
     )
 

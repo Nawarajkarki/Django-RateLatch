@@ -3,7 +3,7 @@ import random
 import time
 
 from redis.exceptions import RedisError, WatchError
-from django_ratelimiter.exceptions import RateLimiterBackendError
+from django_ratelatch.exceptions import RateLimiterBackendError
 
 
 MAX_UPDATE_ATTEMPTS = 25
@@ -11,7 +11,7 @@ MAX_RETRY_DELAY_SECONDS = 0.01
 
 
 class RedisBackend:
-    def __init__(self, client, key_prefix="django_ratelimiter"):
+    def __init__(self, client, key_prefix="django_ratelatch"):
         self.client = client
         self.key_prefix = key_prefix.rstrip(":")
         
