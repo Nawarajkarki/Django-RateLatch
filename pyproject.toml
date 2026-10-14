@@ -1,7 +1,7 @@
 [project]
 name = "django-ratelatch"
 version = "0.1.0"
-description = "Django rate limiting middleware and decorators with fixed-window, sliding-window counter and token-bucket algorithms, backed by in-memory storage or Redis."
+description = "Django rate-limiting library with middleware, view decorators, and Django REST Framework throttling. Supports fixed-window, sliding-window counter, and token-bucket algorithms with in-memory or Redis storage."
 readme = "README.md"
 authors = [
     { name = "Nawaraj karki", email = "nawarajkarkee404@gmail.com" }
